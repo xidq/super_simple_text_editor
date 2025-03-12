@@ -1,14 +1,13 @@
 use std::fs::File;
 use egui::{global_theme_preference_buttons, global_theme_preference_switch, CentralPanel, FontId, Sense, TextStyle, ThemePreference};
 use rfd::FileDialog;
-// use std::fs::File;
 use std::io::{self, Read, Write};
 use eframe::epaint::FontFamily::Proportional;
 use egui::FontFamily::Monospace;
 use egui::introspection::font_id_ui;
 use egui::TextStyle::{Body, Button, Heading, Small};
 use egui::UiKind::Window;
-// use egui::menu::menu_button;
+
 
 pub struct Notatnik{
     pub menu_file: &'static str,
@@ -66,36 +65,48 @@ impl eframe::App for Notatnik{
 
         CentralPanel::default()
             .show(ctx, |ui| {
-                // global_theme_preference_buttons(ui);
+
+                // Adding things in columns
                 ui.columns(2,|column|{
+                    // adding theme switch buttons
                     column[0].vertical_centered_justified(|ui|{
                         ui.horizontal(|ui|{
                             ui.label("kolor ui:");
                             global_theme_preference_buttons(ui);
                         });
                     });
+
+                    // some hints etc
                     column[1].vertical_centered_justified(|ui| {
                         ui.label("Ctrl + S -- save   ||    Ctrl + O -- open");
                     });
                 });
 
-
-
-
-
-                // ui.available_size();
                 ui.separator();
 
+                // Adding scroll area for text field
                 egui::scroll_area::ScrollArea::vertical().show(ui, |ui| {
 
+                    // add_sized works good for filling avaliable space tho
+                    // managing all data in memory b4 save or something
                     ui.add_sized(ui.available_size(), egui::TextEdit::multiline(&mut self.treść).frame(false));
+                    
                 });
 
             });
+
+        // confirmation window
         if self.window {
-            egui::Window::new("Otwarcie Pliku")/*.open(&mut self.window)*/.resizable(false).show(ctx, |ui| {
+            egui::Window::new("Otwarcie Pliku")/*.open(&mut self.window)*/
+                .resizable(false) //don't wanna resizable window
+                .show(ctx, |ui| {
+                    //monit text
                 ui.label("W aktualnym pliku znajduje się tekst,\nczy na pewno chcesz kontynuować?");
+
+                    // yes/no choice
                 ui.horizontal(|ui| {
+                    // is like that clear enough or better to use let statement and
+                    // .clicked() to that let?
                     if ui.add(egui::Button::new("tak").sense(Sense::click())).clicked() {
                         println!("lol");
                         self.treść = otwórz_plik();
@@ -107,27 +118,23 @@ impl eframe::App for Notatnik{
                 });
             });
         }
-
-
-
-        // println!("{}",format!("{}   {}",self.na_pewno,self.window));
     }
-
 }
 
+// saving to file
 fn zapisz_do_pliku(dane:&String){
 
         if let Some(ścieżka) = FileDialog::new().add_filter("Pliki tekstowe",&["txt","lua","cfg", "json"]).set_file_name("PlikTekstowy.txt").save_file() {
             let mut plik = File::create(ścieżka).unwrap();
 
-            // Zapisz dane do pliku
+
             plik.write_all(dane.as_bytes()).unwrap();
         };
 
 }
 
+// opening existing file
 fn otwórz_plik()->String{
-
 
     let mut buffer = String::new();
 
@@ -138,12 +145,8 @@ fn otwórz_plik()->String{
 
         buffer
 
-
-
         } else {
-            String::new() // Jeśli plik nie został wybrany, zwróć pusty String
+            String::new()
         }
-
-
 
 }
